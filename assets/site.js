@@ -69,7 +69,7 @@
   categories.forEach(category => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'menu-tab-btn shrink-0 rounded-xl bg-surface-container px-4 py-2.5 font-title-md text-body-sm text-on-surface-variant transition-all hover:bg-surface-container-high focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary';
+    button.className = 'menu-tab-btn shrink-0 rounded-full border border-outline-variant/60 bg-surface-container-low px-4 py-2.5 font-label-md text-label-md text-on-surface-variant transition-colors duration-200 hover:border-secondary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary motion-reduce:transition-none';
     button.textContent = category.name;
     button.dataset.category = category.key;
     button.setAttribute('aria-pressed', 'false');
@@ -80,14 +80,15 @@
 
   data.restaurantCategories.forEach(category => category.items.forEach(name => {
     const card = document.createElement('article');
-    card.className = 'menu-card flex min-h-14 items-center gap-2 rounded-lg border border-secondary/15 bg-surface-container-lowest px-3 py-2 shadow-sm transition-shadow hover:shadow-md';
+    card.className = 'menu-card flex min-h-14 items-center gap-3 rounded-xl border border-secondary/20 bg-surface-container-low px-3 py-2 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-secondary/40 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0';
     card.dataset.category = normalizeCategory(category.name);
     card.dataset.search = name.toLocaleLowerCase();
     const accent = document.createElement('span');
-    accent.className = 'h-2.5 w-2.5 shrink-0 rounded-full bg-primary-container';
+    accent.className = 'material-symbols-outlined grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-container text-[18px] text-secondary-fixed';
+    accent.textContent = 'restaurant';
     accent.setAttribute('aria-hidden', 'true');
     const label = document.createElement('h4');
-    label.className = 'font-title-md text-body-md text-primary';
+    label.className = 'min-w-0 font-title-md text-body-md font-semibold leading-snug tracking-tight text-primary';
     label.textContent = name;
     card.append(accent, label);
     grid.append(card);
@@ -107,7 +108,11 @@
       button.classList.toggle('bg-primary-container', selected);
       button.classList.toggle('text-on-primary', selected);
       button.classList.toggle('shadow-sm', selected);
-      button.classList.toggle('bg-surface-container', !selected);
+      button.classList.toggle('border-primary-container', selected);
+      button.classList.toggle('border-outline-variant/60', !selected);
+      button.classList.toggle('bg-surface-container-low', !selected);
+      button.classList.toggle('hover:bg-primary', selected);
+      button.classList.toggle('hover:bg-surface-container-high', !selected);
       button.classList.toggle('text-on-surface-variant', !selected);
       button.setAttribute('aria-pressed', String(selected));
     });
