@@ -1,6 +1,19 @@
 (() => {
   if (window.__SRV_MENU_INITIALIZED__) return;
 
+  document.addEventListener('error', event => {
+    const image = event.target;
+    if (image?.tagName?.toLowerCase() !== 'img' || !image.hasAttribute('data-image-fallback')) return;
+    image.hidden = true;
+    const container = image.parentElement;
+    if (!container || container.querySelector('.image-load-fallback')) return;
+    const fallback = document.createElement('div');
+    fallback.className = 'image-load-fallback absolute inset-0 flex items-center justify-center bg-surface-container-low text-on-surface-variant';
+    fallback.setAttribute('aria-hidden', 'true');
+    fallback.innerHTML = '<span class="material-symbols-outlined text-3xl">image_not_supported</span>';
+    container.insertBefore(fallback, image.nextElementSibling);
+  }, true);
+
   const data = window.SRV_MENU_DATA;
   const tabs = document.getElementById('menuTabs');
   const grid = document.getElementById('menuItemsGrid');
