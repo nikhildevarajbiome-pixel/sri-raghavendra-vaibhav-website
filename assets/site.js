@@ -58,7 +58,8 @@
   }
   window.__SRV_MENU_INITIALIZED__ = true;
 
-  const normalizeCategory = value => String(value).normalize('NFKC').trim().toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
+  const normalizeSearchText = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase().trim().replace(/\s+/g, ' ');
+  const normalizeCategory = value => normalizeSearchText(value).replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
   const categories = data.restaurantCategories.map(category => ({
     name: category.name === 'Breakfast and South Indian Specials' ? 'Breakfast' : category.name,
     key: normalizeCategory(category.name)
@@ -78,11 +79,14 @@
     filterButtons.push(button);
   });
 
-  data.restaurantCategories.forEach(category => category.items.forEach(name => {
+  data.restaurantCategories.forEach(category => category.items.forEach(item => {
+    const name = typeof item === 'string' ? item : String(item?.name ?? '');
+    const description = typeof item === 'object' && item ? String(item.description ?? '') : '';
     const card = document.createElement('article');
     card.className = 'menu-card flex min-h-14 items-center gap-3 rounded-xl border border-secondary/20 bg-surface-container-low px-3 py-2 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-secondary/40 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0';
     card.dataset.category = normalizeCategory(category.name);
-    card.dataset.search = name.toLocaleLowerCase();
+    card.dataset.search = normalizeSearchText([name, description, category.description].filter(Boolean).join(' '));
+    card.dataset.categorySearch = normalizeSearchText(category.name);
     const accent = document.createElement('span');
     accent.className = 'material-symbols-outlined grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-container text-[18px] text-secondary-fixed';
     accent.textContent = 'restaurant';
@@ -95,10 +99,17 @@
   }));
 
   function updateMenu() {
-    const query = search.value.trim().toLocaleLowerCase();
+    const query = normalizeSearchText(search.value);
+    const terms = query ? query.split(' ') : [];
     let visible = 0;
     grid.querySelectorAll('.menu-card').forEach(card => {
-      const matches = card.dataset.category === activeCategory && (!query || card.dataset.search.includes(query));
+      const matchesCategory = !query && card.dataset.category === activeCategory;
+      const searchableWords = card.dataset.search.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+      const categoryWords = card.dataset.categorySearch.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+      const matchesItem = terms.every(term => card.dataset.search.includes(term) || searchableWords.some(word => word.startsWith(term)));
+      const matchesCategoryName = terms.length >= categoryWords.length && categoryWords.every(word => terms.some(term => word.includes(term) || word.startsWith(term)));
+      const matchesQuery = query && (matchesItem || matchesCategoryName);
+      const matches = Boolean(matchesCategory || matchesQuery);
       card.hidden = !matches;
       card.classList.toggle('flex', matches);
       if (matches) visible++;
@@ -116,7 +127,10 @@
       button.classList.toggle('text-on-surface-variant', !selected);
       button.setAttribute('aria-pressed', String(selected));
     });
-    result.textContent = query ? `${visible} dish${visible === 1 ? '' : 'es'} found` : `${visible} dish${visible === 1 ? '' : 'es'}`;
+    result.textContent = query
+      ? `${visible} matching dish${visible === 1 ? '' : 'es'} across all categories`
+      : `${visible} dish${visible === 1 ? '' : 'es'}`;
+    empty.textContent = 'No matching dishes found. Clear the search to view the menu.';
     empty.classList.toggle('hidden', visible !== 0);
   }
   search.addEventListener('input', updateMenu);
@@ -169,7 +183,7 @@
     heading.textContent = `${pkg.name} Menu`;
     const intro = document.createElement('p');
     intro.className = 'mt-1 font-body-sm text-on-surface-variant';
-    intro.textContent = 'Food selections';
+    intro.textContent = 'Available menu options';
     headingGroup.append(heading, intro);
     const close = document.createElement('button');
     close.type = 'button';
@@ -179,6 +193,10 @@
     header.append(headingGroup, close);
     const content = document.createElement('div');
     content.className = 'overflow-y-auto overscroll-contain px-5 py-5 sm:px-7';
+    const menuNote = document.createElement('p');
+    menuNote.className = 'mb-5 rounded-xl border border-secondary/30 bg-secondary-container/30 px-4 py-3 font-body-sm text-on-surface';
+    menuNote.textContent = 'The items listed are menu options. One item will be selected from each category for your event, based on the agreed catering package.';
+    content.append(menuNote);
     content.style.overflowY = 'auto';
     content.style.overscrollBehavior = 'contain';
     content.style.minHeight = '0';
@@ -216,7 +234,7 @@
     enquiry.target = '_blank';
     enquiry.rel = 'noopener noreferrer';
     const message = `Hello, I would like to enquire about the ${pkg.name} catering menu. Event type: [type]. Event date: [date]. Guest count: [count]. Please share details.`;
-    enquiry.href = `https://wa.me/919611542717?text=${encodeURIComponent(message)}`;
+    enquiry.href = `https://wa.me/918123556036?text=${encodeURIComponent(message)}`;
     controls.append(explore, enquiry);
     card.append(title, summary, controls);
     packageContainer.append(card, dialog);

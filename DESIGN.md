@@ -157,7 +157,7 @@ The design system bridges authentic South Indian culinary tradition and celebrat
 
 ### Tone & Character
 - **Sanctified & Welcoming:** Evokes brass lamps (*diyas*), fresh plantain leaves, and aromatic filter coffee.
-- **Architectural & Dignified:** Inspired by traditional Chettinad pillars, courtyards, and Brundavana hall grandeur, streamlined into clean digital interfaces.
+- **Architectural & Dignified:** Inspired by traditional Chettinad pillars, courtyards, and Brindavana hall grandeur, streamlined into clean digital interfaces.
 - **Warm & Crisp:** Avoids high-tech coldness or flat minimalism by utilizing rich earth-rooted undertones and refined serif typography.
 
 ## Colors
@@ -166,7 +166,7 @@ The palette is rooted in temple gardens, seasoned teak wood, warm brassware, and
 
 - **Primary (`#153E28` | Forest Deep):** Represents plantain leaves, auspicious tulsi foliage, and dignified calm. Used for high-emphasis containers, active navigation states, primary buttons, and hero banners. A deeper variant (`#0F2C1D`) serves for elevated contrast and night overlays.
 - **Secondary (`#C59B27` | Burnished Brass / Gold):** Represents traditional brass serviceware and auspicious festivity. Used deliberately for hairline dividers, badge outlines, icon accents, and tertiary CTAs. An alternate lighter tint (`#D4AF37`) is reserved for hover highlights and delicate decorative filigree.
-- **Tertiary (`#6B1D2F` | Muted Kumkum Maroon):** Represents wedding celebration and sacred warmth. Used for culinary badges (e.g., "Chef's Special", "Brundavana Hall Booking Available"), promotional ribboning, and festive markers.
+- **Tertiary (`#6B1D2F` | Muted Kumkum Maroon):** Represents wedding celebration and sacred warmth. Used for culinary badges (e.g., "Chef's Special", "Brindavana Hall Booking Available"), promotional ribboning, and festive markers.
 - **Neutral Surface Palette:**
   - Base Canvas (`#FAF7F2` | Ivory Sandhanam): Replaces harsh white with organic parchment warmth.
   - Layered Surface (`#F4EFE6` | Steamed Payasam Cream): Used for inset panels, elevated cards, and menu groupings.
