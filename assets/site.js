@@ -28,6 +28,94 @@
     if ('ResizeObserver' in window) new ResizeObserver(syncMainOffset).observe(fixedHeader);
     else window.addEventListener('resize', syncMainOffset);
   }
+  const navigationLinks = Array.from(document.querySelectorAll('header nav a[href^="#"]'));
+  const navigationSections = Array.from(new Map(navigationLinks
+    .map(link => document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))))
+    .filter(Boolean)
+    .map(section => [section.id, section])).values());
+  let pendingNavigationTarget = null;
+  let scrollEndTimer = 0;
+  let scrollFrame = 0;
+  const setActiveNavigation = id => {
+    navigationLinks.forEach(link => {
+      const active = link.getAttribute('href') === `#${id}`;
+      link.classList.toggle('bg-primary-container', active);
+      link.classList.toggle('text-on-primary', active);
+      link.classList.toggle('font-bold', active);
+      link.classList.toggle('rounded-lg', active);
+      link.classList.toggle('px-3', active && link.closest('nav')?.hasAttribute('data-active-classes'));
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
+  const syncActiveFromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (navigationSections.some(section => section.id === id)) setActiveNavigation(id);
+  };
+  const syncActiveFromScroll = () => {
+    scrollFrame = 0;
+    const headerOffset = fixedHeader ? fixedHeader.getBoundingClientRect().height : 0;
+    if (pendingNavigationTarget) {
+      if (pendingNavigationTarget.getBoundingClientRect().top <= headerOffset + 32) {
+        setActiveNavigation(pendingNavigationTarget.id);
+        pendingNavigationTarget = null;
+      }
+      return;
+    }
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+      setActiveNavigation(navigationSections[navigationSections.length - 1].id);
+      return;
+    }
+    const activationLine = headerOffset + 32;
+    let current = navigationSections[0];
+    navigationSections.forEach(section => {
+      if (section.getBoundingClientRect().top <= activationLine) current = section;
+    });
+    if (current) setActiveNavigation(current.id);
+  };
+  const scheduleActiveFromScroll = () => {
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(syncActiveFromScroll);
+    clearTimeout(scrollEndTimer);
+    scrollEndTimer = setTimeout(() => {
+      pendingNavigationTarget = null;
+      syncActiveFromScroll();
+    }, 180);
+  };
+  const scrollToSection = (target, behavior = 'smooth') => {
+    pendingNavigationTarget = target;
+    setActiveNavigation(target.id);
+    const headerOffset = fixedHeader ? fixedHeader.getBoundingClientRect().height : 0;
+    window.scrollTo({ top: Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset), behavior });
+  };
+  if (navigationSections.length) {
+    navigationLinks.forEach(link => link.addEventListener('click', event => {
+      const target = document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1)));
+      if (!target) return;
+      event.preventDefault();
+      if (location.hash !== link.getAttribute('href')) history.pushState(null, '', link.getAttribute('href'));
+      scrollToSection(target);
+    }));
+    window.addEventListener('scroll', scheduleActiveFromScroll, { passive: true });
+    window.addEventListener('resize', scheduleActiveFromScroll);
+    window.addEventListener('popstate', () => {
+      const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target && navigationSections.includes(target)) scrollToSection(target);
+      else syncActiveFromScroll();
+    });
+    window.addEventListener('hashchange', syncActiveFromHash);
+    window.addEventListener('wheel', () => { pendingNavigationTarget = null; }, { passive: true });
+    window.addEventListener('touchstart', () => { pendingNavigationTarget = null; }, { passive: true });
+    syncActiveFromHash();
+    if (location.hash) {
+      const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target && navigationSections.includes(target)) requestAnimationFrame(() => {
+        scrollToSection(target, 'auto');
+        pendingNavigationTarget = null;
+      });
+    } else {
+      syncActiveFromScroll();
+    }
+  }
   const mobileMenu = document.getElementById('mobileMenu');
   const mobileMenuToggle = document.getElementById('mobileMenuToggle');
   const mobileNavigation = document.getElementById('mobileNavigation');
@@ -51,17 +139,7 @@
     mobileNavigation.addEventListener('click', event => {
       const link = event.target.closest('a[href]');
       if (!link) return;
-      const href = link.getAttribute('href');
-      const target = href && href.startsWith('#') ? document.getElementById(decodeURIComponent(href.slice(1))) : null;
       closeMobileMenu();
-      if (!target) return;
-      event.preventDefault();
-      history.pushState(null, '', href);
-      requestAnimationFrame(() => {
-        const headerOffset = fixedHeader ? fixedHeader.getBoundingClientRect().height : 0;
-        const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
-        window.scrollTo({ top, behavior: 'smooth' });
-      });
     });
   }
   if (!data || !tabs || !grid || !search || !result || !empty) {
