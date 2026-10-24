@@ -156,6 +156,7 @@
     key: normalizeCategory(category.name)
   }));
   let activeCategory = categories[0]?.key ?? '';
+  let categoryWasSelected = false;
   const filterButtons = [];
 
   categories.forEach(category => {
@@ -165,7 +166,7 @@
     button.textContent = category.name;
     button.dataset.category = category.key;
     button.setAttribute('aria-pressed', 'false');
-    button.addEventListener('click', () => { activeCategory = category.key; updateMenu(); });
+    button.addEventListener('click', () => { activeCategory = category.key; categoryWasSelected = true; updateMenu(); });
     tabs.append(button);
     filterButtons.push(button);
   });
@@ -194,13 +195,15 @@
     const terms = query ? query.split(' ') : [];
     let visible = 0;
     grid.querySelectorAll('.menu-card').forEach(card => {
-      const matchesCategory = !query && card.dataset.category === activeCategory;
+      const matchesCategory = card.dataset.category === activeCategory;
       const searchableWords = card.dataset.search.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
       const categoryWords = card.dataset.categorySearch.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
       const matchesItem = terms.every(term => card.dataset.search.includes(term) || searchableWords.some(word => word.startsWith(term)));
-      const matchesCategoryName = terms.length >= categoryWords.length && categoryWords.every(word => terms.some(term => word.includes(term) || word.startsWith(term)));
+      const matchesCategoryName = terms.length > 0 && terms.every(term => categoryWords.some(word => word.includes(term) || word.startsWith(term)));
       const matchesQuery = query && (matchesItem || matchesCategoryName);
-      const matches = Boolean(matchesCategory || matchesQuery);
+      const matches = query
+        ? Boolean(matchesQuery && (!categoryWasSelected || matchesCategory))
+        : matchesCategory;
       card.hidden = !matches;
       card.classList.toggle('flex', matches);
       if (matches) visible++;
@@ -233,6 +236,20 @@
   updateMenu();
 
   const packageContainer = document.getElementById('cateringPackages');
+  const holigeList = document.getElementById('holigeMenuItems');
+  const holigeCategory = data.restaurantCategories.find(category => category.name === 'Holige');
+  (holigeCategory?.items ?? []).forEach(name => {
+    const item = document.createElement('li');
+    item.className = 'flex items-start gap-2';
+    const dot = document.createElement('span');
+    dot.className = 'mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary';
+    dot.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span');
+    label.textContent = name;
+    item.append(dot, label);
+    holigeList.append(item);
+  });
+
   data.cateringPackages.forEach((pkg, index) => {
     const card = document.createElement('article');
     card.className = 'flex flex-col rounded-2xl border border-secondary/25 bg-surface p-5 shadow-sm';
